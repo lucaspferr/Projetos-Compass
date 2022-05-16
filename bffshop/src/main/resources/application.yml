@@ -1,0 +1,73 @@
+server:
+  port: 8080
+eureka:
+  instance:
+    hostname: localhost
+  client:
+    register-with-eureka: true
+    fetch-registry: true
+    service-url:
+      defaultZone: http://localhost:8761/eureka
+
+management:
+  endpoint.gateway.enabled: true
+  endpoints.web.exposure.include: gateway
+
+bffshop:
+  jwt:
+    secret: rm'!@N=Ke!~p8VTA2ZRK~nMDQX5Uvm!m'D&]{@Vr?G;2?XhbC:Qa#9#eMLN\}x3?JR3.2zr~v)gYF^8\:8>:XfB:Ww75N/emt9Yj[bQMNCWwW\J?N,nvH.<2\.r~w]*e~vgak)X"v8H`MH/7"2E`,^k@n<vE-wD3g9JWPy;CrY*.Kd2_D])=><D?YhBaSua5hW%{2]_FVXzb9`8FH^b[X3jzVER&:jw2<=c38=>L/zBq`}C6tT*cCSVC^c]-L}&/
+    expiration: 1800000
+
+spring:
+  application:
+    name: bffshop
+  profiles:
+    active: default
+    cloud:
+      config:
+        uri: http://localhost:8888
+  cloud:
+    gateway:
+      discovery:
+        locator:
+          enabled: false
+          lower-case-service-id: true
+#         Routes list to other microservices      #
+      routes:
+#         Catalog Microservice                    #
+        - id: catalog-product-id
+          uri: lb://catalog
+          predicates:
+            - Path=/v1/products/*
+            - Method=GET
+            - Header=Authorization, Bearer (.*)
+          filters:
+            - RemoveRequestHeader=Cookie
+            - AuthorizationFilter
+        - id: catalog-category-id-products
+          uri: lb://catalog
+          predicates:
+            - Path=/v1/categories/*/products
+            - Method=GET
+#         Customer Microservice                   #
+        - id: customer-login
+          uri: lb://customer
+          predicates:
+            - Path=/v1/login
+            - Method=POST
+        - id: customer-register
+          uri: lb://customer
+          predicates:
+            - Path=/v1/users
+            - Method=POST
+        - id: customer-get-change-info
+          uri: lb://customer
+          predicates:
+            - Path=/v1/users/*
+            - Method=POST, PUT
+            - Header=Authorization, Bearer (.*)
+          filters:
+            - RemoveRequestHeader=Cookie
+            - AuthorizationFilter
+
+

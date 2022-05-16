@@ -1,0 +1,1 @@
+INSERT INTO customer(first_name, last_name, sex, cpf, birthdate, email, password, active) VALUES('Lucas', 'Pimentel Ferreira', 'MASCULINO', '000.000.000-00', '1997-04-19','lucas@email.com','$2a$10$3TbIW.9JjaAy.jWq2sJcpudFG1JsqY7lNxG6RKtm.1M9kTegNQVbm', 'true');
