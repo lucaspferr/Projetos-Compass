@@ -146,7 +146,7 @@ public class HistoryService {
 
         User user = modelMapper.map(userDTO, User.class);
 
-        user.setUser_id(sequenceGeneratorService.generateSequence(User.SEQUENCE_NAME));
+        user.setUser_id(userDTO.getUser_id());
         user.setHistory_id(history.getHistory_id());
 
         mongoTemplate.save(user);
@@ -163,7 +163,6 @@ public class HistoryService {
 
     public History postHistory(CheckoutHistory checkoutHistory){
         checkoutConversor(checkoutHistory,userFeign.getCustomer(checkoutHistory.getUser_id()));
-        Long id;
         return null;
 
     }
