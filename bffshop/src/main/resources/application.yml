@@ -49,6 +49,11 @@ spring:
           predicates:
             - Path=/v1/categories/*/products
             - Method=GET
+            - Header=Authorization, Bearer (.*)
+          filters:
+            - RemoveRequestHeader=Cookie
+            - AuthorizationFilter
+
 #         Customer Microservice                   #
         - id: customer-login
           uri: lb://customer
@@ -65,6 +70,37 @@ spring:
           predicates:
             - Path=/v1/users/*
             - Method=POST, PUT
+            - Header=Authorization, Bearer (.*)
+          filters:
+            - RemoveRequestHeader=Cookie
+            - AuthorizationFilter
+
+#         Checkout Microservice                 #
+        - id: checkout-payments
+          uri: lb://checkout
+          predicates:
+            - Path=/v1/payments
+            - Method=GET
+            - Header=Authorization, Bearer (.*)
+          filters:
+            - RemoveRequestHeader=Cookie
+            - AuthorizationFilter
+        - id: checkout-purchase
+          uri: lb://checkout
+          predicates:
+            - Path=/v1/purchases
+            - Method=POST
+            - Header=Authorization, Bearer (.*)
+          filters:
+            - RemoveRequestHeader=Cookie
+            - AuthorizationFilter
+
+#         History Microservice                  #
+        - id: history-user
+          uri: lb://history
+          predicates:
+            - Path=/v1/historic/user/*
+            - Method=GET
             - Header=Authorization, Bearer (.*)
           filters:
             - RemoveRequestHeader=Cookie
