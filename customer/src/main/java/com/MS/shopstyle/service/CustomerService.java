@@ -122,5 +122,7 @@ public class CustomerService {
         customer2.setEmail(customer.getEmail());
         customer2.setPassword(customer.getPassword());
         customer2.setActive(customer.isActive());
+
+        customerRepository.save(customer2);
     }
 }

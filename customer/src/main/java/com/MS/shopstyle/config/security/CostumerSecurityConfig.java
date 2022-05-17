@@ -52,12 +52,11 @@ public class CostumerSecurityConfig extends WebSecurityConfigurerAdapter {
     protected void configure(HttpSecurity http) throws Exception {
         http
                 .authorizeRequests()
-                //.antMatchers(HttpMethod.GET,"/v1/users").permitAll()
                 .antMatchers(HttpMethod.POST,"/v1/users").permitAll()
                 .antMatchers(HttpMethod.POST,"/v1/login").permitAll()
                 .antMatchers(HttpMethod.GET,"/v1/users/*").permitAll()
                 .antMatchers(HttpMethod.PUT,"/v1/users/*").permitAll()
-                .anyRequest().authenticated()
+//                .anyRequest().authenticated()
                 .and().csrf().disable()
                 .sessionManagement().sessionCreationPolicy(SessionCreationPolicy.STATELESS)
                 .and().addFilterBefore(new CustomerAuthTokenFilter(authTokenService, customerRepository), UsernamePasswordAuthenticationFilter.class);

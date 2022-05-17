@@ -122,6 +122,7 @@ public class HistoryService {
     }
 
     private History updatePurchases(CheckoutHistory checkoutHistory) {
+
         History history = new History();
         User user = userRepository.findByUser_id(checkoutHistory.getUser_id());
         history.setHistory_id(user.getHistory_id());
@@ -146,7 +147,9 @@ public class HistoryService {
 
         User user = modelMapper.map(userDTO, User.class);
 
-        user.setUser_id(userDTO.getUser_id());
+        user.setUser_id(checkoutHistory.getUser_id());
+
+
         user.setHistory_id(history.getHistory_id());
 
         mongoTemplate.save(user);
