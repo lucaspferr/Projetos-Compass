@@ -3,6 +3,7 @@ package com.MS.history.service;
 import com.MS.history.client.UserFeign;
 import com.MS.history.model.*;
 import com.MS.history.model.DTO.CheckoutHistory;
+import com.MS.history.model.DTO.HistoryDTO;
 import com.MS.history.model.DTO.PaymentDTO;
 import com.MS.history.model.DTO.UserDTO;
 import com.MS.history.repository.*;
@@ -44,12 +45,27 @@ public class HistoryService {
         return history;
     }
 
+    public HistoryDTO getById(Long user_id){
+        User user = userRepository.findByUser_id(user_id);
+        Long history_id = user.getHistory_id();
+        History history = historyRepository.findByHistory_id(history_id);
+        history.setUser(userRepository.findByHistory_id(history_id));
+        HistoryDTO historyDTO = modelMapper.map(history,HistoryDTO.class);
+        return historyDTO;
+    }
+
+    public String dateFormatter(String oldDate){
+        String[] splitDate = oldDate.split("-");
+        return (splitDate[2]+"/"+splitDate[1]+"/"+splitDate[0]);
+    }
+
     public History checkoutConversor(CheckoutHistory checkoutHistory, UserDTO userDTO){
         History history = new History();
 
         //Checagem de usuario
         if(userRepository.findByUser_id(checkoutHistory.getUser_id()) == null) history = createUser(checkoutHistory, userDTO);
         else history = updatePurchases(checkoutHistory);
+
 
         Long id = history.getHistory_id();
 
@@ -60,6 +76,7 @@ public class HistoryService {
         Long id2 = purchases.getPurchase_id();
 
         List<Purchases> purchasesList = purchaseRepository.getPurchases(id);
+        purchases.setDate(dateFormatter(checkoutHistory.getDate()));
         purchasesList.add(purchases);
 
         for (Purchases purchasesAdder : purchasesList){

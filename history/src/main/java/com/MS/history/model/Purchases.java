@@ -30,7 +30,7 @@ public class Purchases{
     private List<Products> products;
 
     private Double total;
-    private LocalDate date;
+    private String date;
 
     private Long history_id;
 

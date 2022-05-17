@@ -85,7 +85,7 @@ public class PurchaseService {
     private Double priceCalculator(PurchaseHistory purchaseHistory) {
         Double prePrice = 0.00;
         for (ProductHistory productHistory : purchaseHistory.getProducts()) {
-            prePrice = productHistory.getPrice() + prePrice;
+            prePrice = productHistory.getPrice()*productHistory.getQuantity() + prePrice;
         }
 
         String price = String.format("%.2f",(prePrice/(100.00/(100.00 - purchaseHistory.getPaymentMethod().getDiscount()))));
