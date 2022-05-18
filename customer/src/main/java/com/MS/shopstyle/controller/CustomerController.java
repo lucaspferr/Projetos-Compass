@@ -8,11 +8,13 @@ import com.MS.shopstyle.repository.CustomerRepository;
 import com.MS.shopstyle.service.AuthTokenService;
 import com.MS.shopstyle.service.CustomerService;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.AuthenticationException;
+import org.springframework.validation.Errors;
 import org.springframework.web.bind.annotation.*;
 
 import javax.validation.Valid;
@@ -61,7 +63,9 @@ public class CustomerController {
     }
 
     @PutMapping("users/{idCustomer}")
-    public void updateCustomer(@PathVariable Long idCustomer, @RequestBody @Valid CustomerDTO customerDTO){
-        customerService.updateCustomer(idCustomer, customerService.dtoToUserConversor(customerDTO));
+    public ResponseEntity<?> updateCustomer(@PathVariable Long idCustomer, @RequestBody @Valid CustomerDTO customerDTO, Errors errors){
+        if(errors.hasErrors()) customerService.validationErrors(errors.toString());
+        Customer customer = customerService.updateCustomer(idCustomer, customerDTO);
+        return new ResponseEntity(customer, HttpStatus.CREATED);
     }
 }

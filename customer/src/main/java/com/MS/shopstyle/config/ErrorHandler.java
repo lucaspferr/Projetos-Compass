@@ -1,25 +1,28 @@
 package com.MS.shopstyle.config;
 
 import org.springframework.http.HttpStatus;
+import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.ResponseStatus;
 import org.springframework.web.bind.annotation.RestControllerAdvice;
 
 import javax.validation.ConstraintViolationException;
+import javax.validation.ValidationException;
 
 @RestControllerAdvice
 public class ErrorHandler {
 
     @ResponseStatus(code = HttpStatus.INTERNAL_SERVER_ERROR)
     @ExceptionHandler(IllegalStateException.class)
-    public String illegalHandler(Exception e){
-        String error = e.getMessage();
-        return (error);
+    public ResponseEntity<?> illegalHandler(Exception e){
+        return ResponseEntity.badRequest().body(e.getMessage());
     }
 
-    @ResponseStatus(code = HttpStatus.INTERNAL_SERVER_ERROR)
-    @ExceptionHandler(ConstraintViolationException.class)
-    public String nullHandler(ConstraintViolationException e){
+    //ConstraintViolationException
+//    @ResponseStatus(code = HttpStatus.INTERNAL_SERVER_ERROR)
+    @ResponseStatus(code = HttpStatus.BAD_REQUEST)
+    @ExceptionHandler({ConstraintViolationException.class, ValidationException.class})
+    public String nullHandler(Exception e){
         String error = e.getMessage();
         System.out.println(error);
         return ("O(s) campo(s) abaixo deve(m) ser preenchido(s):"+nameGetter(error));
@@ -38,10 +41,10 @@ public class ErrorHandler {
         return posError;
     }
 
-    @ResponseStatus(code = HttpStatus.BAD_REQUEST)
-    @ExceptionHandler(Exception.class)
-    public String badRequestHandler(Exception e){
-        String error = e.getMessage();
-        return error;
-    }
+//    @ResponseStatus(code = HttpStatus.BAD_REQUEST)
+//    @ExceptionHandler(Exception.class)
+//    public String badRequestHandler(Exception e){
+//        String error = e.getMessage();
+//        return error;
+//    }
 }
