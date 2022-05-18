@@ -38,7 +38,7 @@ public class CustomerService {
             LocalDate date = LocalDate.parse(dateArray[2]+"-"+dateArray[1]+"-"+dateArray[0]);
             return date;
         }catch (Exception e){
-            return null;
+            throw new IllegalStateException("Type a valid date with the pattern dd/mm/yyyy");
         }
     }
 
@@ -49,39 +49,30 @@ public class CustomerService {
     }
 
     public String emailChecker(String email){
-        try {
-            if (email.matches("^[\\w-_\\.+]*[\\w-_\\.]\\@([\\w]+\\.)+[\\w]+[\\w]$") && !emailDuplicatedChecker(email))
-                return email;
-            else if (email.matches("^[\\w-_\\.+]*[\\w-_\\.]\\@([\\w]+\\.)+[\\w]+[\\w]+[\\w]+[\\w]$") && !emailDuplicatedChecker(email))
-                return email;
-            else return null;
-        }catch (Exception e){return null;}
+        if (email.matches("^[\\w-_\\.+]*[\\w-_\\.]\\@([\\w]+\\.)+[\\w]+[\\w]$")
+                || email.matches("^[\\w-_\\.+]*[\\w-_\\.]\\@([\\w]+\\.)+[\\w]+[\\w]+[\\w]+[\\w]$")) return emailDuplicatedChecker(email);
+        else throw new IllegalStateException("Type a valid email format only");
     }
 
     public String cpfChecker(String cpf) {
         try {
             if (cpf.matches("\\pN{3}.\\pN{3}.\\pN{3}-\\pN{2}")) return cpf;
-            else return null;
-        }catch (Exception e){return null;}
+            else throw new IllegalStateException("Invalid CPF");
+        }catch (Exception e){throw new IllegalStateException("Invalid CPF");}
     }
 
-    public boolean emailDuplicatedChecker(String email){
+    public String emailDuplicatedChecker(String email){
         List<Customer> customerList = customerRepository.findAll();
-        for(Customer customer : customerList){if(customer.getEmail().matches(email)) return true;}
-        return false;
+        for(Customer customer : customerList){if(customer.getEmail().matches(email)){throw new IllegalStateException("Email already being used");}}
+        return email;
     }
 
     public Sex stringToSex(String sexString){
-        try{
-            sexString = sexString.toLowerCase();
-            if (sexString.matches("masculino")) return Sex.MASCULINO;
-            else if (sexString.matches("feminino")) return Sex.FEMININO;
-                //else return null;
-            else {
-                throw new IllegalStateException("Digite apenas masculino ou feminino.");
-            }
-        }catch (NullPointerException e){
-            return null;}
+        sexString = sexString.toLowerCase();
+        if (sexString.matches("masculino")) return Sex.MASCULINO;
+        else if (sexString.matches("feminino")) return Sex.FEMININO;
+            //else return null;
+        else {throw new IllegalStateException("Type 'Masculino' or 'Feminino' only");}
     }
 
     public Customer dtoToUserConversor(CustomerDTO customerDTO) {
@@ -98,27 +89,23 @@ public class CustomerService {
         return customer;
     }
 
-    public CustomerDTO userToDtoConversor(Customer customer) {
-        CustomerDTO customerDTO = new CustomerDTO();
+//    public CustomerDTO userToDtoConversor(Customer customer) {
+//        CustomerDTO customerDTO = new CustomerDTO();
+//
+//        customerDTO.setId(customer.getId());
+//        customerDTO.setFirstName(customer.getFirstName());
+//        customerDTO.setLastName(customer.getLastName());
+//        customerDTO.setSex(customer.getSex().toString());
+//        customerDTO.setCpf(cpfChecker(customer.getCpf()));
+//        customerDTO.setBirthdate(dateConversor(customer.getBirthdate()));
+//        customerDTO.setEmail(customer.getEmail());
+//        customerDTO.setPassword(customer.getPassword());
+//        customerDTO.setActive(customer.isActive());
+//
+//        return customerDTO;
+//    }
 
-        customerDTO.setId(customer.getId());
-        customerDTO.setFirstName(customer.getFirstName());
-        customerDTO.setLastName(customer.getLastName());
-        customerDTO.setSex(customer.getSex().toString());
-        customerDTO.setCpf(cpfChecker(customer.getCpf()));
-        customerDTO.setBirthdate(dateConversor(customer.getBirthdate()));
-        customerDTO.setEmail(customer.getEmail());
-        customerDTO.setPassword(customer.getPassword());
-        customerDTO.setActive(customer.isActive());
-
-        return customerDTO;
-    }
-
-    public String passwordEncrypter(String prePassword){
-        if(prePassword.length()>=8) return passwordEncoder.encode(prePassword);
-        throw new IllegalStateException("Senha precisa ter um tamanho de no mínimo 8 carácteres.");
-
-    }
+    public String passwordEncrypter(String prePassword){return passwordEncoder.encode(prePassword);}
 
     public Customer dtoToCustomer(CustomerDTO customerDTO){
 
@@ -126,13 +113,24 @@ public class CustomerService {
         customer.setBirthdate(dateConversor(customerDTO.getBirthdate()));
         customer.setSex(stringToSex(customerDTO.getSex()));
         customer.setPassword(passwordEncrypter(customerDTO.getPassword()));
+        customer.setCpf(cpfChecker(customerDTO.getCpf()));
 
         return customer;
     }
 
+    public CustomerDTO customerToDTO(Customer customer){
+        CustomerDTO customerDTO = modelMapper.map(customer, CustomerDTO.class);
+        return customerDTO;
+    }
+
+    public CustomerDTO findOne(Long id){
+        Customer customer = customerRepository.findById(id).orElseThrow(() -> new IllegalStateException("User with the ID "+id+" doesn't exist."));
+        return customerToDTO(customer);
+    }
+
     @Transactional
     public Customer updateCustomer(Long idCustomer, CustomerDTO customerDTO) {
-        Customer customer2 = customerRepository.findById(idCustomer).orElseThrow(() -> new IllegalStateException("Usuário com o ID "+idCustomer+" não existente."));
+        Customer customer2 = customerRepository.findById(idCustomer).orElseThrow(() -> new IllegalStateException("User with the ID "+idCustomer+" doesn't exist."));
         Customer customer = dtoToCustomer(customerDTO);
         if(!(customer2.getEmail().matches(customer.getEmail()))) {customer.setEmail(emailChecker(customer.getEmail()));}
         customer.setId(customer2.getId());
@@ -140,6 +138,9 @@ public class CustomerService {
         return customerRepository.save(customer);
     }
 
-    public void validationErrors(String vErrors){throw new IllegalStateException(vErrors);}
+    public Customer createCustomer(CustomerDTO customerDTO){
+        Customer customer = dtoToCustomer(customerDTO);
+        return customerRepository.save(customer);
+    }
 
 }

@@ -121,18 +121,18 @@ public class CustomerServiceTest {
         Assertions.assertEquals(gerador().getEmail(),customer.getEmail());
     }
 
-    @Test
-    public void converterNormalparaDTO(){
-        //Envia um Customer e covnerte para o formato CustomerDTO
-        CustomerDTO customerDTO = new CustomerDTO();
-        customerDTO = customerService.userToDtoConversor(gerador());
-
-        Assertions.assertEquals(geradorDTO().getFirstName(),customerDTO.getFirstName());
-        Assertions.assertEquals(geradorDTO().getLastName(),customerDTO.getLastName());
-        Assertions.assertEquals(geradorDTO().getCpf(),customerDTO.getCpf());
-        Assertions.assertEquals(geradorDTO().getBirthdate(),customerDTO.getBirthdate());
-        Assertions.assertEquals(geradorDTO().getEmail(),customerDTO.getEmail());
-    }
+//    @Test
+//    public void converterNormalparaDTO(){
+//        //Envia um Customer e covnerte para o formato CustomerDTO
+//        CustomerDTO customerDTO = new CustomerDTO();
+//        customerDTO = customerService.userToDtoConversor(gerador());
+//
+//        Assertions.assertEquals(geradorDTO().getFirstName(),customerDTO.getFirstName());
+//        Assertions.assertEquals(geradorDTO().getLastName(),customerDTO.getLastName());
+//        Assertions.assertEquals(geradorDTO().getCpf(),customerDTO.getCpf());
+//        Assertions.assertEquals(geradorDTO().getBirthdate(),customerDTO.getBirthdate());
+//        Assertions.assertEquals(geradorDTO().getEmail(),customerDTO.getEmail());
+//    }
 
     @Test
     public void senhaEhEncriptografada(){

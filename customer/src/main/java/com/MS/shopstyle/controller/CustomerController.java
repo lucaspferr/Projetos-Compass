@@ -39,13 +39,15 @@ public class CustomerController {
 
     @GetMapping("users/{idCustomer}")
     public CustomerDTO listCustomer(@PathVariable Long idCustomer){
-        Customer customer = customerRepository.findById(idCustomer).orElseThrow(() -> new IllegalStateException("Usuario com o ID "+idCustomer+" não existe."));
-        return customerService.userToDtoConversor(customer);
+        return customerService.findOne(idCustomer);
+        //Customer customer = customerRepository.findById(idCustomer).orElseThrow(() -> new IllegalStateException("Usuario com o ID "+idCustomer+" não existe."));
+        //return customerService.userToDtoConversor(customer);
     }
 
     @PostMapping("users")
-    public void saveUser(@RequestBody CustomerDTO customerDTO){
-        customerRepository.save(customerService.dtoToUserConversor(customerDTO));
+    public ResponseEntity<?> saveUser(@RequestBody @Valid CustomerDTO customerDTO){
+        Customer customer = customerService.createCustomer(customerDTO);
+        return new ResponseEntity(customer, HttpStatus.CREATED);
     }
 
     @PostMapping("login")
@@ -63,8 +65,7 @@ public class CustomerController {
     }
 
     @PutMapping("users/{idCustomer}")
-    public ResponseEntity<?> updateCustomer(@PathVariable Long idCustomer, @RequestBody @Valid CustomerDTO customerDTO, Errors errors){
-        if(errors.hasErrors()) customerService.validationErrors(errors.toString());
+    public ResponseEntity<?> updateCustomer(@PathVariable Long idCustomer, @RequestBody @Valid CustomerDTO customerDTO){
         Customer customer = customerService.updateCustomer(idCustomer, customerDTO);
         return new ResponseEntity(customer, HttpStatus.CREATED);
     }

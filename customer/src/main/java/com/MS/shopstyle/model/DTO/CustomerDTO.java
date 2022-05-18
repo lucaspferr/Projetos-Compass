@@ -14,7 +14,7 @@ import javax.validation.constraints.Size;
 @AllArgsConstructor
 public class CustomerDTO {
 
-    private Long id;
+    //private Long id;
     @NotNull @NotBlank @Size(min = 3)
     private String firstName;
     @NotNull @NotBlank @Size(min = 3)
