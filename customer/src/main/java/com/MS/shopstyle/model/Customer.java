@@ -40,9 +40,6 @@ public class Customer implements UserDetails {
     @NotNull
     private Boolean active;
 
-    public Customer(String firstName, String lastName, Sex sex, String cpf, LocalDate of, String s1, String s2, boolean b) {
-    }
-
     @Override
     public Collection<? extends GrantedAuthority> getAuthorities() {
         return null;

@@ -32,6 +32,4 @@ public class CustomerDTO {
     @NotNull
     private Boolean active;
 
-    public CustomerDTO(String teste, String testing, String masculino, String s, String s1, String s2, String s3, boolean b) {
-    }
 }
