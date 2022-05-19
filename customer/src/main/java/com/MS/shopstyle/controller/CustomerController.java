@@ -26,9 +26,6 @@ import javax.validation.Valid;
 public class CustomerController {
 
     @Autowired
-    private CustomerRepository customerRepository;
-
-    @Autowired
     private CustomerService customerService;
 
     @Autowired
@@ -38,10 +35,9 @@ public class CustomerController {
     private AuthTokenService tokenService;
 
     @GetMapping("users/{idCustomer}")
-    public CustomerDTO listCustomer(@PathVariable Long idCustomer){
-        return customerService.findOne(idCustomer);
-        //Customer customer = customerRepository.findById(idCustomer).orElseThrow(() -> new IllegalStateException("Usuario com o ID "+idCustomer+" não existe."));
-        //return customerService.userToDtoConversor(customer);
+    public ResponseEntity<?> listCustomer(@PathVariable Long idCustomer){
+        CustomerDTO customerDTO = customerService.findOne(idCustomer);
+        return ResponseEntity.ok().body(customerDTO);
     }
 
     @PostMapping("users")

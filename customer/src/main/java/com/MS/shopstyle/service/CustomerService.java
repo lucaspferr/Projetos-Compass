@@ -75,36 +75,6 @@ public class CustomerService {
         else {throw new IllegalStateException("Type 'Masculino' or 'Feminino' only");}
     }
 
-    public Customer dtoToUserConversor(CustomerDTO customerDTO) {
-        Customer customer = new Customer();
-
-        customer.setFirstName(customerDTO.getFirstName());
-        customer.setLastName(customerDTO.getLastName());
-        customer.setSex(stringToSex(customerDTO.getSex()));
-        customer.setCpf(cpfChecker(customerDTO.getCpf()));
-        customer.setBirthdate(dateConversor(customerDTO.getBirthdate()));
-        customer.setEmail(emailChecker(customerDTO.getEmail()));
-        customer.setActive(customerDTO.getActive());
-        if(!(customerDTO.getPassword()==null)) if(!(customerDTO.getPassword().isEmpty())) customer.setPassword(passwordEncrypter(customerDTO.getPassword()));
-        return customer;
-    }
-
-//    public CustomerDTO userToDtoConversor(Customer customer) {
-//        CustomerDTO customerDTO = new CustomerDTO();
-//
-//        customerDTO.setId(customer.getId());
-//        customerDTO.setFirstName(customer.getFirstName());
-//        customerDTO.setLastName(customer.getLastName());
-//        customerDTO.setSex(customer.getSex().toString());
-//        customerDTO.setCpf(cpfChecker(customer.getCpf()));
-//        customerDTO.setBirthdate(dateConversor(customer.getBirthdate()));
-//        customerDTO.setEmail(customer.getEmail());
-//        customerDTO.setPassword(customer.getPassword());
-//        customerDTO.setActive(customer.isActive());
-//
-//        return customerDTO;
-//    }
-
     public String passwordEncrypter(String prePassword){return passwordEncoder.encode(prePassword);}
 
     public Customer dtoToCustomer(CustomerDTO customerDTO){

@@ -108,18 +108,18 @@ public class CustomerServiceTest {
         Assertions.assertEquals(Sex.FEMININO, customerService.stringToSex("FEmiNiNo"));
     }
 
-    @Test
-    public void converterDTOparaNormal(){
-        //Envia um CustomerDTO e converte para formato Customer
-        Customer customer = new Customer();
-        customer = customerService.dtoToUserConversor(geradorDTO());
-
-        Assertions.assertEquals(gerador().getFirstName(),customer.getFirstName());
-        Assertions.assertEquals(gerador().getLastName(),customer.getLastName());
-        Assertions.assertEquals(gerador().getCpf(),customer.getCpf());
-        Assertions.assertEquals(gerador().getBirthdate(),customer.getBirthdate());
-        Assertions.assertEquals(gerador().getEmail(),customer.getEmail());
-    }
+//    @Test
+//    public void converterDTOparaNormal(){
+//        //Envia um CustomerDTO e converte para formato Customer
+//        Customer customer = new Customer();
+//        customer = customerService.dtoToUserConversor(geradorDTO());
+//
+//        Assertions.assertEquals(gerador().getFirstName(),customer.getFirstName());
+//        Assertions.assertEquals(gerador().getLastName(),customer.getLastName());
+//        Assertions.assertEquals(gerador().getCpf(),customer.getCpf());
+//        Assertions.assertEquals(gerador().getBirthdate(),customer.getBirthdate());
+//        Assertions.assertEquals(gerador().getEmail(),customer.getEmail());
+//    }
 
 //    @Test
 //    public void converterNormalparaDTO(){
