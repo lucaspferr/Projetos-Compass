@@ -42,10 +42,4 @@ public class ErrorHandler {
         return posError;
     }
 
-//    @ResponseStatus(code = HttpStatus.BAD_REQUEST)
-//    @ExceptionHandler(Exception.class)
-//    public String badRequestHandler(Exception e){
-//        String error = e.getMessage();
-//        return error;
-//    }
 }

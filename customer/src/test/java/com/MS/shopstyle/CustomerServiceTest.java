@@ -11,14 +11,11 @@ import org.junit.jupiter.api.Test;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.MockitoAnnotations;
-import org.mockito.Spy;
 import org.modelmapper.ModelMapper;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 
 import java.time.LocalDate;
-import java.util.Arrays;
 import java.util.List;
 import java.util.Optional;
 
@@ -88,8 +85,15 @@ public class CustomerServiceTest {
         assertEquals(CPF, cReturn.getCpf());
         assertEquals(BIRTHDATE,cReturn.getBirthdate());
         assertEquals(PASSWORD,cReturn.getPassword());
-        assertEquals(EMAIL,cReturn.getEmail());
+        assertEquals(EMAIL2,cReturn.getEmail());
         assertEquals(ACTIVE,cReturn.getActive());
+    }
+
+    @Test
+    void saveCustomerWithNulls(){
+        dtoReturn = new CustomerDTO();
+        cReturn = new Customer();
+        mockedRepository.save(cReturn);
     }
 
     @Test
@@ -142,20 +146,20 @@ public class CustomerServiceTest {
     void duplicatedEmailCheckerThrows(){
         when(mockedRepository.findAll()).thenReturn(List.of(customer));
         assertThrows(IllegalStateException.class, () -> {
-            service.emailDuplicatedChecker("teste@teste.com");
+            service.emailDuplicatedChecker("teste@teste.com.br");
         });
     }
 
     @Test
     void duplicatedEmailCheckerSuccess(){
         when(mockedRepository.findAll()).thenReturn(List.of(emailCustomer));
-        assertEquals("teste@teste.com",service.emailDuplicatedChecker("teste@teste.com"));
+        assertEquals("teste@teste.com.br",service.emailDuplicatedChecker("teste@teste.com.br"));
     }
     void createCustomer(){
-        customer = new Customer(ID,FIRSTNAME,LASTNAME,SEX,CPF,BIRTHDATE,EMAIL,PASSWORD,ACTIVE);
-        emailCustomer = new Customer(ID,FIRSTNAME,LASTNAME,SEX,CPF,BIRTHDATE,EMAIL2,PASSWORD,ACTIVE);
-        customerDTO = new CustomerDTO(FIRSTNAME,LASTNAME,"Masculino",CPF,"19/04/1997",EMAIL,PASSWORD,ACTIVE);
-        optionalCustomer = optionalCustomer.of(new Customer(ID,FIRSTNAME,LASTNAME,SEX,CPF,BIRTHDATE,EMAIL,PASSWORD,ACTIVE));
+        customer = new Customer(ID,FIRSTNAME,LASTNAME,SEX,CPF,BIRTHDATE,EMAIL2,PASSWORD,ACTIVE);
+        emailCustomer = new Customer(ID,FIRSTNAME,LASTNAME,SEX,CPF,BIRTHDATE,EMAIL,PASSWORD,ACTIVE);
+        customerDTO = new CustomerDTO(FIRSTNAME,LASTNAME,"Masculino",CPF,"19/04/1997",EMAIL2,PASSWORD,ACTIVE);
+        optionalCustomer = optionalCustomer.of(new Customer(ID,FIRSTNAME,LASTNAME,SEX,CPF,BIRTHDATE,EMAIL2,PASSWORD,ACTIVE));
     }
 
 }
