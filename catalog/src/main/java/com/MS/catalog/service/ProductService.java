@@ -43,8 +43,8 @@ public class ProductService{
     public Product createProduct(ProductDTO productDTO){
         Product product = modelMapper.map(productDTO, Product.class);
         product.setCategory_ids(productDTO.getCategory_ids());
-        //
         product.setProduct_id(sequenceGeneratorService.generateSequence(Product.SEQUENCE_NAME));
+        //Criar metodo de verificacao de ativos fora
         List<Long> category_id = product.getCategory_ids();
         System.out.println("AQUI: " + category_id);
         Boolean checker = false;
@@ -87,40 +87,42 @@ public class ProductService{
     }
 
     public Product getProductById(long product_id) {
-        return this.productRepository.findByProduct_id(product_id);
+        Product product = productRepository.findByProduct_id(product_id);
+        if(product == null) throw new IllegalStateException("Product with the ID "+product_id+" doesn't exist.");
+        return product;
+    }
+
+    void categoryChecker(List<Long> category_ids){
+        for(Long category_id : category_ids){
+            Category category = categoryRepository.findByCategory_id(category_id);
+            if(category == null) throw new IllegalStateException("Category with the ID "+category_id+" doesn't exist.");
+        }
     }
 
     @Transactional
     public Product updateProduct(long product_id,ProductDTO productDTO) {
-
         Product idProduct = getProductById(product_id);
-        if(idProduct != null){
-            Product product = modelMapper.map(productDTO, Product.class);
-            product.setProduct_id(idProduct.getProduct_id());
-            return productRepository.save(product);
-        }else throw new IllegalStateException("Houve um erro com o update de dados.");
+        categoryChecker(productDTO.getCategory_ids());
+        Product product = modelMapper.map(productDTO, Product.class);
+        product.setVariationList(idProduct.getVariationList());
+        product.setProduct_id(idProduct.getProduct_id());
+        return productRepository.save(product);
     }
 
     public void deleteProduct(long product_id) {
-        try{
-            Product product = productRepository.findByProduct_id(product_id);
-            deleteVariations(product_id);
-            productRepository.delete(product);
-        }catch (Exception e){throw new IllegalStateException("Id "+product_id+" não encontrado.");}
+        Product product = getProductById(product_id);
+        deleteVariations(product_id);
+        productRepository.delete(product);
     }
 
-    public void deleteVariations(long product_id) {
-        try{variationRepository.deleteByProduct_id(product_id);}
-        catch(Exception e){throw new IllegalStateException("Id "+product_id+" não encontrado.");}
+    void deleteVariations(long product_id) {
+        variationRepository.deleteByProduct_id(product_id);
     }
 
     public void setActiveToFalse(Long category_id){
         List<Product> products = productRepository.findByCategory_ids(category_id);
-        System.out.println(products);
         for(Product product : products){
             product.setActive(false);
-            System.out.println(product);
-            System.out.println(product);
             product.getCategory_ids().remove(category_id);
             productRepository.save(product);
         }

@@ -5,6 +5,8 @@ import com.MS.catalog.model.Category;
 import com.MS.catalog.model.DTO.CategoryDTO;
 import com.MS.catalog.service.CategoryService;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.http.HttpEntity;
+import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
@@ -20,30 +22,33 @@ public class CategoryController {
 
 
     @GetMapping
-    public List<CategoryDTO> getAllCategories(){
-        return this.categoryService.getAllCategories();
+    public ResponseEntity<?> getAllCategories(){
+        List<CategoryDTO> list = categoryService.getAllCategories();
+        return ResponseEntity.ok().body(list);
     }
 
     @PostMapping
     public ResponseEntity<?> createCategory(@RequestBody @Valid CategoryDTO categoryDTO){
-        return ResponseEntity.ok().body(this.categoryService.createCategory(categoryDTO));
+        Category category = categoryService.createCategory(categoryDTO);
+        return new ResponseEntity(category, HttpStatus.CREATED);
     }
 
     @GetMapping("/{category_id}/products")
-    public Category getCategoryById(@PathVariable long category_id){
-        return categoryService.getCategoryById(category_id);
+    public ResponseEntity<?> getCategoryById(@PathVariable long category_id){
+        Category category = categoryService.getCategoryById(category_id);
+        return ResponseEntity.ok().body(category);
     }
 
     @PutMapping("/{category_id}")
     public ResponseEntity<?> updateCategory(@PathVariable long category_id, @RequestBody @Valid CategoryDTO categoryDTO){
-        categoryService.updateCategory(category_id, categoryDTO);
-        return null;
+        Category category = categoryService.updateCategory(category_id, categoryDTO);
+        return new ResponseEntity(category, HttpStatus.CREATED);
     }
 
     @DeleteMapping("/{category_id}")
     public ResponseEntity<?> deleteCategory(@PathVariable long category_id){
         categoryService.deleteCategory(category_id);
-        return null;
+        return ResponseEntity.status(204).build();
     }
 
 

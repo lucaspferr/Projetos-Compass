@@ -19,5 +19,5 @@ public class CategoryDTO {
     @NotNull @NotEmpty
     private String name;
     @NotNull
-    private boolean active;
+    private Boolean active;
 }

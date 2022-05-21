@@ -41,29 +41,22 @@ public class CategoryService {
     }
 
     public Category getCategoryById(long category_id){
-
         Category category = categoryRepository.findByCategory_id(category_id);
-        //categoryDTO.setProduct_id(productService.getByCategoryId(category_id));
+        if(category==null) throw new IllegalStateException("Category with the ID "+category_id+" doesn't exist.");
         return category;
     }
 
     @Transactional
     public Category updateCategory(long category_id, CategoryDTO categoryDTO) {
-        try {
-            Category idCategory = categoryRepository.findByCategory_id(category_id);
-            Category category = modelMapper.map(categoryDTO, Category.class);
-            category.setCategory_id(idCategory.getCategory_id());
-            return categoryRepository.save(category);
-        }catch (Exception e){
-            throw new IllegalStateException("Houve um erro com o update de dados.");
-        }
+        Category idCategory = getCategoryById(category_id);
+        Category category = modelMapper.map(categoryDTO, Category.class);
+        category.setCategory_id(idCategory.getCategory_id());
+        return categoryRepository.save(category);
     }
 
-    public boolean deleteCategory(long category_id){
-        try {
-            categoryRepository.deleteByCategory_id(category_id);
-            productService.setActiveToFalse(category_id);
-            return true;
-        }catch (Exception e){return false;}
+    public void deleteCategory(long category_id){
+        getCategoryById(category_id);
+        categoryRepository.deleteByCategory_id(category_id);
+        productService.setActiveToFalse(category_id);
     }
 }
