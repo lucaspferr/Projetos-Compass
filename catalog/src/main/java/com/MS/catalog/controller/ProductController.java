@@ -5,6 +5,7 @@ import com.MS.catalog.model.DTO.ProductDTO;
 import com.MS.catalog.model.Product;
 import com.MS.catalog.service.ProductService;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
@@ -33,12 +34,13 @@ public class ProductController {
     @PutMapping("/{product_id}")
     public ResponseEntity<?> updateProduct(@PathVariable long product_id,@RequestBody @Valid ProductDTO productDTO){
         Product product = productService.updateProduct(product_id, productDTO);
-        return ResponseEntity.ok().body(product);
+        return new ResponseEntity(product, HttpStatus.CREATED);
     }
 
     @PostMapping
-    public Product createProduct(@RequestBody @Valid ProductDTO productDTO){
-        return this.productService.createProduct(productDTO);
+    public ResponseEntity<?> createProduct(@RequestBody @Valid ProductDTO productDTO){
+        Product product = productService.createProduct(productDTO);
+        return new ResponseEntity(product, HttpStatus.CREATED);
     }
 
     @DeleteMapping("/{product_id}")

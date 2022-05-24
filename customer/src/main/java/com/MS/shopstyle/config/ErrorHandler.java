@@ -35,10 +35,10 @@ public class ErrorHandler {
         if(preError.contains("lastName")) {posError = posError + "\n* Last name";if(preError.contains("[lastName],2147483647,3")) posError = posError + " : must be at least 3 characters";}
         if(preError.contains("sex")) posError = posError + "\n* Sex";
         if(preError.contains("cpf")) posError = posError + "\n* CPF";
-        if(preError.contains("birthdate")) posError = posError + "\n* Birthdate (data de nascimento)";
+        if(preError.contains("birthdate")) posError = posError + "\n* Birthdate";
         if(preError.contains("email")) posError = posError + "\n* Email";
-        if(preError.contains("password")) posError = posError + "\n* Password (senha)";
-        if(preError.contains("active")) posError = posError + "\n* Active (ativo)";
+        if(preError.contains("password")) posError = posError + "\n* Password";
+        if(preError.contains("active")) posError = posError + "\n* Active";
         return posError;
     }
 

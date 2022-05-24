@@ -27,7 +27,6 @@ public class ProductService{
 
     private ModelMapper modelMapper = new ModelMapper();
 
-
     @Autowired
     MongoTemplate mongoTemplate;
 
@@ -44,23 +43,17 @@ public class ProductService{
         Product product = modelMapper.map(productDTO, Product.class);
         product.setCategory_ids(productDTO.getCategory_ids());
         product.setProduct_id(sequenceGeneratorService.generateSequence(Product.SEQUENCE_NAME));
-        //Criar metodo de verificacao de ativos fora
-        List<Long> category_id = product.getCategory_ids();
-        System.out.println("AQUI: " + category_id);
-        Boolean checker = false;
-        for(Long id : category_id){
-            Category category = categoryRepository.findByCategory_id(id);
-            checker = category.getActive();
-            if(checker){
-                mongoTemplate.save(product);
-                mongoTemplate
-                        .update(Category.class)
-                        .matching(where("category_id").is(category.getCategory_id()))
-                        .apply(new Update().push("productList", product))
-                        .first();
-            }
-        }if(checker) return productRepository.save(product);
-        else throw new IllegalStateException("Categoria não está ativa");
+        categoryChecker(product.getCategory_ids());
+        activeCategoryChecker(product.getCategory_ids());
+        for(Long category_id : productDTO.getCategory_ids()){
+            Category category = categoryRepository.findByCategory_id(category_id);
+            mongoTemplate.save(product);
+            mongoTemplate
+                    .update(Category.class)
+                    .matching(where("category_id").is(category.getCategory_id()))
+                    .apply(new Update().push("productList", product))
+                    .first();
+        }return productRepository.save(product);
     }
 
     public List<ProductDTO> listDTO(List<Product> products) {
@@ -75,9 +68,9 @@ public class ProductService{
         return productRepository.findAll();
     }
 
-    public List<ProductDTO> getByCategoryId(long category_id){
-        return listDTO(productRepository.findByCategory_ids(category_id));
-    }
+//    public List<ProductDTO> getByCategoryId(long category_id){
+//        return listDTO(productRepository.findByCategory_ids(category_id));
+//    }
 
     public ProductDTO normalToDTO(Product product){
         long product_id = product.getProduct_id();
@@ -92,7 +85,7 @@ public class ProductService{
         return product;
     }
 
-    void categoryChecker(List<Long> category_ids){
+    public void categoryChecker(List<Long> category_ids){
         for(Long category_id : category_ids){
             Category category = categoryRepository.findByCategory_id(category_id);
             if(category == null) throw new IllegalStateException("Category with the ID "+category_id+" doesn't exist.");
@@ -126,5 +119,12 @@ public class ProductService{
             product.getCategory_ids().remove(category_id);
             productRepository.save(product);
         }
+    }
+    public void activeCategoryChecker(List<Long> category_ids){
+        for(Long category_id : category_ids){
+            Category category = categoryRepository.findByCategory_id(category_id);
+            if(!category.getActive()) throw new IllegalStateException("Category with the ID "+category_id+" is not active.");
+        }
+
     }
 }

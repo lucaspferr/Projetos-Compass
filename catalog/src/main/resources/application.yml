@@ -1,8 +1,7 @@
 server:
     port: 8081
 
-queue:
-    name: catalog
+
 
 eureka:
     instance:

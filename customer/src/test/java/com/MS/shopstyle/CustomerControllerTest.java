@@ -3,35 +3,28 @@ package com.MS.shopstyle;
 import com.MS.shopstyle.controller.CustomerController;
 import com.MS.shopstyle.model.Customer;
 import com.MS.shopstyle.model.DTO.CustomerDTO;
-import com.MS.shopstyle.model.Sex;
-import com.MS.shopstyle.repository.CustomerRepository;
 import com.MS.shopstyle.service.CustomerService;
+import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.MockitoAnnotations;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.boot.test.autoconfigure.orm.jpa.DataJpaTest;
 import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc;
-import org.springframework.boot.test.autoconfigure.web.servlet.WebMvcTest;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.context.annotation.Profile;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.test.web.servlet.MockMvc;
+import org.springframework.test.web.servlet.MvcResult;
 import org.springframework.test.web.servlet.request.MockMvcRequestBuilders;
-import org.springframework.test.web.servlet.result.MockMvcResultMatchers;
 
-import static org.junit.jupiter.api.Assertions.assertEquals;
-import static org.junit.jupiter.api.Assertions.assertThrows;
-import static org.mockito.ArgumentMatchers.any;
-import static org.mockito.Mockito.*;
 
 import java.net.URI;
-import java.net.URISyntaxException;
-import java.time.LocalDate;
 import java.util.Optional;
+
+import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.*;
 
 @SpringBootTest
 @AutoConfigureMockMvc
@@ -65,20 +58,24 @@ public class CustomerControllerTest {
                 .post(uri)
                 .content(json)
                 .contentType(MediaType.APPLICATION_JSON))
-                .andExpect(MockMvcResultMatchers.status().is(400));
+                .andExpect(status().is(400));
     }
 
     @Test
     void createCustomerFailed() throws Exception{
         URI uri = new URI("/v1/users");
         String json = "{\"email\":\"fail@teste.com\",\"password\":\"testepass\"}";
+        String error= "The field(s) bellow must be filled:\n* First name\n* Last name\n* Sex\n* CPF\n* Birthdate\n* Active";
 
 
-        mockMvc.perform(MockMvcRequestBuilders
+        MvcResult result = mockMvc.perform(MockMvcRequestBuilders
                         .post(uri)
                         .content(json)
                         .contentType(MediaType.APPLICATION_JSON))
-                .andExpect(MockMvcResultMatchers.status().is(400));
+                .andExpect(status().is(400))
+                .andExpect(handler().handlerType(CustomerController.class))
+                .andReturn();
+        Assertions.assertEquals(error, result.getResponse().getContentAsString());
     }
 
     @Test
@@ -97,7 +94,7 @@ public class CustomerControllerTest {
                         .post(uri)
                         .content(json)
                         .contentType(MediaType.APPLICATION_JSON))
-                .andExpect(MockMvcResultMatchers.status().is(201));
+                .andExpect(status().is(201));
     }
 
     @Test
@@ -116,7 +113,7 @@ public class CustomerControllerTest {
                         .put(uri)
                         .content(json)
                         .contentType(MediaType.APPLICATION_JSON))
-                .andExpect(MockMvcResultMatchers.status().is(201));
+                .andExpect(status().is(201));
     }
 
     @Test
@@ -128,7 +125,8 @@ public class CustomerControllerTest {
                         .post(uri)
                         .content(json)
                         .contentType(MediaType.APPLICATION_JSON))
-                .andExpect(MockMvcResultMatchers.status().is(200));
+                .andExpect(status().is(200));
+
     }
 
     @Test
@@ -136,7 +134,7 @@ public class CustomerControllerTest {
         URI uri = new URI("/v1/users/1");
 
         mockMvc.perform(MockMvcRequestBuilders
-                .get(uri)).andExpect(MockMvcResultMatchers.status().is(200));
+                .get(uri)).andExpect(status().is(200));
 
     }
 

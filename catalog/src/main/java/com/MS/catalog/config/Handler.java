@@ -30,6 +30,8 @@ public class Handler {
         String posError="";
         if(e.contains("[name]")) posError = posError + "\n* Name";
         if(e.contains("[active]")) posError = posError + "\n* Valid";
+        if(e.contains("[category_ids]")) posError = posError + "\n* Category IDs";
+        if(e.contains("[description]")) posError = posError + "\n* Description";
         return posError;
     }
 }

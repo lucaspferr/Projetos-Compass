@@ -1,8 +1,6 @@
 spring:
   application:
     name: 'catalog'
-  profiles:
-    active: default
   cloud:
     config:
       uri: http://localhost:8888
@@ -11,3 +9,12 @@ spring:
     port: 5672
     username: guest
     password: guest
+
+---
+spring:
+  config:
+    activate:
+      on-profile: dev
+  cloud:
+    config:
+      uri: http://localhost:8888
