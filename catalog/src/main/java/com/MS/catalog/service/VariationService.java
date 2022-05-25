@@ -36,8 +36,8 @@ public class VariationService{
 
     public Variation createVariation(VariationDTO variationDTO){
         Variation variation = modelMapper.map(variationDTO, Variation.class);
-        variation.setVariant_id(sequenceGeneratorService.generateSequence(Variation.SEQUENCE_NAME));
         if(productIdChecker(variationDTO.getProduct_id())){
+            variation.setVariant_id(sequenceGeneratorService.generateSequence(Variation.SEQUENCE_NAME));
             Product product = productRepository.findByProduct_id(variationDTO.getProduct_id());
             mongoTemplate.save(variation);
             mongoTemplate.update(Product.class)
@@ -45,24 +45,22 @@ public class VariationService{
                     .apply(new Update().push("variationList", variation))
                     .first();
             return variationRepository.save(variation);
-        }else throw new IllegalStateException("Produto com o ID "+variationDTO.getProduct_id()+" não encontrado");
+        }else throw new IllegalStateException("Product with the ID "+variationDTO.getProduct_id()+" doesn't exist.");
     }
 
     @Transactional
     public Variation updateVariation(long variant_id, VariationDTO variationDTO){
+        variationIdChecker(variant_id);
         Variation idVariation = variationRepository.findByVariant_id(variant_id);
-        if(idVariation != null) {
-            Variation variation = modelMapper.map(variationDTO, Variation.class);
-            variation.setVariant_id(idVariation.getVariant_id());
-            return variationRepository.save(variation);
-        }else throw new IllegalStateException("Variação com o ID "+variant_id+" não existe");
+        //if(idVariation == null) throw new IllegalStateException("Variant with the ID "+variant_id+" doesn't exist.");
+        Variation variation = modelMapper.map(variationDTO, Variation.class);
+        variation.setVariant_id(idVariation.getVariant_id());
+        return variationRepository.save(variation);
     }
 
-    public boolean deleteVariation(long variant_id){
-        if(variationIdChecker(variant_id)){
-            variationRepository.deleteByVariant_id(variant_id);
-            return true;
-        }return false;
+    public void deleteVariation(long variant_id){
+        variationIdChecker(variant_id);
+        variationRepository.deleteByVariant_id(variant_id);
     }
 
     public boolean productIdChecker(long product_id){
@@ -70,14 +68,14 @@ public class VariationService{
         return true;
     }
 
-    public boolean variationIdChecker(long variant_id){
-        if(variationRepository.findByVariant_id(variant_id)==null) return false;
-        return true;
+    public void variationIdChecker(long variant_id){
+        if(variationRepository.findByVariant_id(variant_id)==null) throw new IllegalStateException("Variant with the ID "+variant_id+" doesn't exist.");
     }
 
     public VariationDTO variationFeingFinder(long variant_id){
+        variationIdChecker(variant_id);
         Variation variation = variationRepository.findByVariant_id(variant_id);
-        if(variation==null) throw new IllegalStateException("Varição com o ID "+variant_id+" não existe.");
+        //if(variation==null) throw new IllegalStateException("Variant with the ID "+variant_id+" doesn't exist.");
         modelMapper.getConfiguration().setMatchingStrategy(MatchingStrategies.STRICT);
         VariationDTO variationDTO = modelMapper.map(variation, VariationDTO.class);
         return variationDTO;
