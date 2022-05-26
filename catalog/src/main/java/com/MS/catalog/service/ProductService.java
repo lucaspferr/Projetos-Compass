@@ -1,5 +1,6 @@
 package com.MS.catalog.service;
 
+import com.MS.catalog.model.Variation;
 import com.MS.catalog.repository.CategoryRepository;
 import com.MS.catalog.repository.ProductRepository;
 import com.MS.catalog.repository.VariationRepository;
@@ -42,18 +43,11 @@ public class ProductService{
     public Product createProduct(ProductDTO productDTO){
         Product product = modelMapper.map(productDTO, Product.class);
         product.setCategory_ids(productDTO.getCategory_ids());
-        product.setProduct_id(sequenceGeneratorService.generateSequence(Product.SEQUENCE_NAME));
         categoryChecker(product.getCategory_ids());
         activeCategoryChecker(product.getCategory_ids());
-        for(Long category_id : productDTO.getCategory_ids()){
-            Category category = categoryRepository.findByCategory_id(category_id);
-            mongoTemplate.save(product);
-            mongoTemplate
-                    .update(Category.class)
-                    .matching(where("category_id").is(category.getCategory_id()))
-                    .apply(new Update().push("productList", product))
-                    .first();
-        }return productRepository.save(product);
+        product.setProduct_id(sequenceGeneratorService.generateSequence(Product.SEQUENCE_NAME));
+        product = categoryUpdater(product);
+        return productRepository.save(product);
     }
 
     public List<ProductDTO> listDTO(List<Product> products) {
@@ -67,10 +61,6 @@ public class ProductService{
     public List<Product> getAllProducts(){
         return productRepository.findAll();
     }
-
-//    public List<ProductDTO> getByCategoryId(long category_id){
-//        return listDTO(productRepository.findByCategory_ids(category_id));
-//    }
 
     public ProductDTO normalToDTO(Product product){
         long product_id = product.getProduct_id();
@@ -92,13 +82,39 @@ public class ProductService{
         }
     }
 
+    public void categoryCleaner(Product product, List<Long> oldCategoryIds){
+        for (Long category_id: oldCategoryIds){
+            Category category = categoryRepository.findByCategory_id(category_id);
+            mongoTemplate.update(Category.class)
+                    .matching(where("category_id").is(category.getCategory_id()))
+                    .apply(new Update().pull("productList", product))
+                    .first();
+        }
+    }
+
+    public Product categoryUpdater(Product product){
+        for (Long category_id : product.getCategory_ids()){
+            Category category = categoryRepository.findByCategory_id(category_id);
+            mongoTemplate.save(product);
+            mongoTemplate
+                    .update(Category.class)
+                    .matching(where("category_id").is(category.getCategory_id()))
+                    .apply(new Update().push("productList", product))
+                    .first();
+        }
+        return product;
+    }
+
     @Transactional
     public Product updateProduct(long product_id,ProductDTO productDTO) {
         Product idProduct = getProductById(product_id);
         categoryChecker(productDTO.getCategory_ids());
+        activeCategoryChecker(productDTO.getCategory_ids());
         Product product = modelMapper.map(productDTO, Product.class);
         product.setVariationList(idProduct.getVariationList());
         product.setProduct_id(idProduct.getProduct_id());
+        categoryCleaner(idProduct, idProduct.getCategory_ids());
+        product = categoryUpdater(product);
         return productRepository.save(product);
     }
 
@@ -115,7 +131,7 @@ public class ProductService{
     public void setActiveToFalse(Long category_id){
         List<Product> products = productRepository.findByCategory_ids(category_id);
         for(Product product : products){
-            product.setActive(false);
+            if(product.getCategory_ids().size()==1) product.setActive(false);
             product.getCategory_ids().remove(category_id);
             productRepository.save(product);
         }

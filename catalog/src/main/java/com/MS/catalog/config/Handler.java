@@ -32,6 +32,10 @@ public class Handler {
         if(e.contains("[active]")) posError = posError + "\n* Valid";
         if(e.contains("[category_ids]")) posError = posError + "\n* Category IDs";
         if(e.contains("[description]")) posError = posError + "\n* Description";
+        if(e.contains("[color]")) posError = posError + "\n* Color";
+        if(e.contains("[size]")) posError = posError + "\n* Size";
+        if(e.contains("[price]")) posError = posError + "\n* Price";
+        if(e.contains("[quantity]")) posError = posError + "\n* Quantity";
         return posError;
     }
 }

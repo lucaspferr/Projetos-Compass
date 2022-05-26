@@ -50,13 +50,18 @@ public class CategoryService {
     public Category updateCategory(long category_id, CategoryDTO categoryDTO) {
         Category idCategory = getCategoryById(category_id);
         Category category = modelMapper.map(categoryDTO, Category.class);
+        category.setProductList(idCategory.getProductList());
         category.setCategory_id(idCategory.getCategory_id());
+        if(!category.getActive()) {
+            productService.setActiveToFalse(category_id);
+            category.setProductList(List.of());
+        }
         return categoryRepository.save(category);
     }
 
     public void deleteCategory(long category_id){
         getCategoryById(category_id);
-        categoryRepository.deleteByCategory_id(category_id);
         productService.setActiveToFalse(category_id);
+        categoryRepository.deleteByCategory_id(category_id);
     }
 }

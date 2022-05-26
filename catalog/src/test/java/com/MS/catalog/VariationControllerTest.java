@@ -59,6 +59,7 @@ public class VariationControllerTest {
     2. Create a Category
     3. Create a Product
     4. Create a Variant
+    5.
      */
 
     @Test
@@ -166,6 +167,15 @@ public class VariationControllerTest {
 
     @Test
     @Order(10)
+    void getProductWithVariations() throws Exception{
+        URI uri = new URI("/v1/products/1");
+        MvcResult result = mockMvc.perform(MockMvcRequestBuilders.get(uri))
+                .andExpect(MockMvcResultMatchers.status().is(200)).andReturn();
+        System.out.println("AQUI ->  "+result.getResponse().getContentAsString());
+    }
+
+    @Test
+    @Order(11)
     void deleteVariantOK() throws Exception{
         URI uri = new URI("/v1/variations/1");
         MvcResult result = mockMvc.perform(MockMvcRequestBuilders.delete(uri))
@@ -173,8 +183,6 @@ public class VariationControllerTest {
 
         assertEquals("", result.getResponse().getContentAsString());
     }
-
-
 
 
     //Category

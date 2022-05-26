@@ -15,6 +15,9 @@ import org.springframework.data.mongodb.core.query.Update;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.util.ArrayList;
+import java.util.List;
+
 import static org.springframework.data.mongodb.core.query.Criteria.where;
 
 @Service
@@ -35,26 +38,40 @@ public class VariationService{
     ModelMapper modelMapper = new ModelMapper();
 
     public Variation createVariation(VariationDTO variationDTO){
+        productIdChecker(variationDTO.getProduct_id());
         Variation variation = modelMapper.map(variationDTO, Variation.class);
-        if(productIdChecker(variationDTO.getProduct_id())){
-            variation.setVariant_id(sequenceGeneratorService.generateSequence(Variation.SEQUENCE_NAME));
-            Product product = productRepository.findByProduct_id(variationDTO.getProduct_id());
-            mongoTemplate.save(variation);
-            mongoTemplate.update(Product.class)
-                    .matching(where("product_id").is(product.getProduct_id()))
-                    .apply(new Update().push("variationList", variation))
-                    .first();
-            return variationRepository.save(variation);
-        }else throw new IllegalStateException("Product with the ID "+variationDTO.getProduct_id()+" doesn't exist.");
+        variation.setVariant_id(sequenceGeneratorService.generateSequence(Variation.SEQUENCE_NAME));
+        variation = productUpdater(variation);
+        return variationRepository.save(variation);
+    }
+
+    public Variation productUpdater(Variation variation){
+        Product product = productRepository.findByProduct_id(variation.getProduct_id());
+        mongoTemplate.save(variation);
+        mongoTemplate.update(Product.class)
+                .matching(where("product_id").is(product.getProduct_id()))
+                .apply(new Update().push("variationList", variation))
+                .first();
+        return variation;
+    }
+
+    public void productCleaner(Variation variation, Long oldProductId){
+        Product product = productRepository.findByProduct_id(oldProductId);
+        mongoTemplate.update(Product.class)
+                .matching(where("product_id").is(product.getProduct_id()))
+                .apply(new Update().pull("variationList", variation))
+                .first();
     }
 
     @Transactional
     public Variation updateVariation(long variant_id, VariationDTO variationDTO){
         variationIdChecker(variant_id);
+        productIdChecker(variationDTO.getProduct_id());
         Variation idVariation = variationRepository.findByVariant_id(variant_id);
-        //if(idVariation == null) throw new IllegalStateException("Variant with the ID "+variant_id+" doesn't exist.");
         Variation variation = modelMapper.map(variationDTO, Variation.class);
         variation.setVariant_id(idVariation.getVariant_id());
+        productCleaner(idVariation, idVariation.getProduct_id());
+        variation = productUpdater(variation);
         return variationRepository.save(variation);
     }
 
@@ -63,9 +80,8 @@ public class VariationService{
         variationRepository.deleteByVariant_id(variant_id);
     }
 
-    public boolean productIdChecker(long product_id){
-        if(productRepository.findByProduct_id(product_id)==null) return false;
-        return true;
+    public void productIdChecker(Long product_id){
+        if(productRepository.findByProduct_id(product_id)==null) throw new IllegalStateException("Product with the ID "+product_id+" doesn't exist.");
     }
 
     public void variationIdChecker(long variant_id){
@@ -75,7 +91,6 @@ public class VariationService{
     public VariationDTO variationFeingFinder(long variant_id){
         variationIdChecker(variant_id);
         Variation variation = variationRepository.findByVariant_id(variant_id);
-        //if(variation==null) throw new IllegalStateException("Variant with the ID "+variant_id+" doesn't exist.");
         modelMapper.getConfiguration().setMatchingStrategy(MatchingStrategies.STRICT);
         VariationDTO variationDTO = modelMapper.map(variation, VariationDTO.class);
         return variationDTO;
