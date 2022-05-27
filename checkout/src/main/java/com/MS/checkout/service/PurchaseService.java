@@ -82,7 +82,7 @@ public class PurchaseService {
     }
 
 
-    private Double priceCalculator(PurchaseHistory purchaseHistory) {
+    public Double priceCalculator(PurchaseHistory purchaseHistory) {
         Double prePrice = 0.00;
         for (ProductHistory productHistory : purchaseHistory.getProducts()) {
             prePrice = productHistory.getPrice()*productHistory.getQuantity() + prePrice;

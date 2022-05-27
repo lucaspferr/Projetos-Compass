@@ -3,17 +3,13 @@ package com.MS.checkout;
 import com.MS.checkout.client.CatalogFeign;
 import com.MS.checkout.client.UserFeign;
 import com.MS.checkout.controller.CheckoutController;
-import com.MS.checkout.model.dto.CustomerDTO;
-import com.MS.checkout.model.dto.ProductDTO;
-import com.MS.checkout.model.dto.VariationDTO;
+import com.MS.checkout.model.Purchase;
+import com.MS.checkout.model.dto.*;
 import com.MS.checkout.rabbit.CartMessageSender;
 import com.MS.checkout.rabbit.HistoryMessageSender;
 import com.MS.checkout.service.PurchaseService;
 import org.junit.jupiter.api.*;
-import org.mockito.InjectMocks;
-import org.mockito.Mock;
-import org.mockito.Mockito;
-import org.mockito.MockitoAnnotations;
+import org.mockito.*;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc;
 import org.springframework.boot.test.context.SpringBootTest;
@@ -190,10 +186,89 @@ public class CheckoutControllerTest {
         MvcResult result = mockMvc.perform(post(uri).content(PURCHASE_OK).contentType(MediaType.APPLICATION_JSON))
                 .andExpect(status().is(201)).andReturn();
 
-        System.out.println("----------------------------------------");
-        System.out.println(result.getResponse().getContentAsString());
-        System.out.println("----------------------------------------");
-        //assertEquals((PAY1_ID+PAY1_OK), result.getResponse().getContentAsString());
+        assertEquals(PURCHASE_RETURN,result.getResponse().getContentAsString());
+    }
+
+    @Test
+    @Order(10)
+    void createPurchaseFailQuantity() throws Exception{
+
+        variationDTO = new VariationDTO(15l,"Red","M",50.9,2,15l);
+        productDTO = new ProductDTO(15l,"T-shirt","Lorem Ipsum",true, List.of(1l));
+        customerDTO = new CustomerDTO(15l,true);
+        when(catalogFeign.getVariant(15l)).thenReturn(variationDTO);
+        when(catalogFeign.getProduct(15l)).thenReturn(productDTO);
+        when(userFeign.getCustomer(15l)).thenReturn(customerDTO);
+        doNothing().when(purchaseService).sendMessageToCatalog(any());
+        doNothing().when(purchaseService).sendMessageToHistory(any());
+        doNothing().when(purchaseService).isCustomerActive(15l);
+
+        URI uri = new URI("/v1/purchases");
+        MvcResult result = mockMvc.perform(post(uri).content(PURCHASE_OK).contentType(MediaType.APPLICATION_JSON))
+                .andExpect(handler().handlerType(CheckoutController.class))
+                .andExpect(status().is(400)).andReturn();
+        assertTrue(result.getResolvedException() instanceof IllegalStateException);
+        assertEquals(QUANTITY_ERROR, result.getResponse().getContentAsString());
+
+    }
+
+    @Test
+    @Order(11)
+    void createPurchaseFailProdActive() throws Exception{
+
+        variationDTO = new VariationDTO(15l,"Red","M",50.9,5,15l);
+        productDTO = new ProductDTO(15l,"T-shirt","Lorem Ipsum",false, List.of(1l));
+        customerDTO = new CustomerDTO(15l,true);
+        when(catalogFeign.getVariant(15l)).thenReturn(variationDTO);
+        when(catalogFeign.getProduct(15l)).thenReturn(productDTO);
+        when(userFeign.getCustomer(15l)).thenReturn(customerDTO);
+        doNothing().when(purchaseService).sendMessageToCatalog(any());
+        doNothing().when(purchaseService).sendMessageToHistory(any());
+        doNothing().when(purchaseService).isCustomerActive(15l);
+
+        URI uri = new URI("/v1/purchases");
+        MvcResult result = mockMvc.perform(post(uri).content(PURCHASE_OK).contentType(MediaType.APPLICATION_JSON))
+                .andExpect(handler().handlerType(CheckoutController.class))
+                .andExpect(status().is(400)).andReturn();
+        assertTrue(result.getResolvedException() instanceof IllegalStateException);
+        assertEquals(PROD_INACTIVE, result.getResponse().getContentAsString());
+
+    }
+
+    @Test
+    @Order(12)
+    void createPurchaseFailCustomerActive() throws Exception{
+
+        variationDTO = new VariationDTO(15l,"Red","M",50.9,5,15l);
+        productDTO = new ProductDTO(15l,"T-shirt","Lorem Ipsum",true, List.of(1l));
+        customerDTO = new CustomerDTO(15l,false);
+        when(catalogFeign.getVariant(15l)).thenReturn(variationDTO);
+        when(catalogFeign.getProduct(15l)).thenReturn(productDTO);
+        when(userFeign.getCustomer(15l)).thenReturn(customerDTO);
+        doNothing().when(purchaseService).sendMessageToCatalog(any());
+        doNothing().when(purchaseService).sendMessageToHistory(any());
+        doNothing().when(purchaseService).isCustomerActive(15l);
+
+        URI uri = new URI("/v1/purchases");
+        MvcResult result = mockMvc.perform(post(uri).content(PURCHASE_OK).contentType(MediaType.APPLICATION_JSON))
+                .andExpect(handler().handlerType(CheckoutController.class))
+                .andExpect(status().is(400)).andReturn();
+        assertTrue(result.getResolvedException() instanceof IllegalStateException);
+        assertEquals(USER_INACTIVE, result.getResponse().getContentAsString());
+
+    }
+
+    @Test
+    @Order(13)
+    void priceCalculator(){
+        PaymentDTO paymentDTO = new PaymentDTO("Test",10.00,true);
+        ProductHistory product1 = new ProductHistory("Test","Lorem Ipsum","Red","M",99.90,5);
+        ProductHistory product2 = new ProductHistory("Test","Lorem Ipsum","Red","M",49.90,2);
+        PurchaseHistory purchaseHistory = new PurchaseHistory(1l,paymentDTO,List.of(product1,product2),0.00,"27/05/2022");
+        PurchaseService service = new PurchaseService();
+        Double realPrice = ((product1.getPrice()*product1.getQuantity())+(product2.getPrice()*product2.getQuantity()))*0.90;
+
+        assertEquals(realPrice, service.priceCalculator(purchaseHistory));
     }
 
 
@@ -207,6 +282,7 @@ public class CheckoutControllerTest {
     static final String PAY_FAIL2 = "{\"type\":\"Test\",\"discount\":10.00}";
     //Cart
     static final String PURCHASE_OK = "{\"user_id\":15,\"payment_id\":2,\"cart\":[{\"variant_id\":15,\"quantity\":5}]}";
+    static final String PURCHASE_RETURN = "{\"purchase_id\":1,\"user_id\":15,\"payment_id\":2,\"cart\":[{\"cart_id\":1,\"variant_id\":15,\"quantity\":5}]}";
     //Exception
     static final String FIELDS_MISS = "The field(s) bellow must be filled:";
     static final String TYPE = "\n* Type";
@@ -214,5 +290,8 @@ public class CheckoutControllerTest {
     static final String STATUS = "\n* Status";
     static final String METHOD_EXIST = "Payment method with the ID ";
     static final String DOESNT_EXIST = " doesn't exist.";
+    static final String QUANTITY_ERROR = "Product with insufficient quantity.";
+    static final String PROD_INACTIVE = "Product not active.";
+    static final String USER_INACTIVE = "User with the ID 15 isn't active.";
 
 }

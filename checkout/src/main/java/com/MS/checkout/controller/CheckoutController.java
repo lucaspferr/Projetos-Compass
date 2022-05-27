@@ -5,7 +5,6 @@ import com.MS.checkout.model.Purchase;
 import com.MS.checkout.model.dto.PaymentDTO;
 import com.MS.checkout.model.dto.PurchaseDTO;
 import com.MS.checkout.rabbit.CartMessageSender;
-import com.MS.checkout.service.CartService;
 import com.MS.checkout.service.PaymentService;
 import com.MS.checkout.service.PurchaseService;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -19,9 +18,6 @@ import java.util.List;
 @RestController
 @RequestMapping("/v1")
 public class CheckoutController{
-
-    @Autowired
-    private CartService cartService;
 
     @Autowired
     private PaymentService paymentService;
