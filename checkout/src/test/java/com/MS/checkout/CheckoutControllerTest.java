@@ -1,12 +1,23 @@
 package com.MS.checkout;
 
+import com.MS.checkout.client.CatalogFeign;
+import com.MS.checkout.client.UserFeign;
 import com.MS.checkout.controller.CheckoutController;
+import com.MS.checkout.model.dto.CustomerDTO;
+import com.MS.checkout.model.dto.ProductDTO;
+import com.MS.checkout.model.dto.VariationDTO;
+import com.MS.checkout.rabbit.CartMessageSender;
+import com.MS.checkout.rabbit.HistoryMessageSender;
+import com.MS.checkout.service.PurchaseService;
 import org.junit.jupiter.api.*;
 import org.mockito.InjectMocks;
+import org.mockito.Mock;
+import org.mockito.Mockito;
 import org.mockito.MockitoAnnotations;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc;
 import org.springframework.boot.test.context.SpringBootTest;
+import org.springframework.boot.test.mock.mockito.MockBean;
 import org.springframework.context.annotation.Profile;
 import org.springframework.http.MediaType;
 import org.springframework.test.web.servlet.MockMvc;
@@ -16,9 +27,11 @@ import org.springframework.test.web.servlet.result.MockMvcResultMatchers;
 import org.springframework.web.bind.MethodArgumentNotValidException;
 
 import java.net.URI;
+import java.util.List;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertTrue;
+import static org.mockito.Mockito.*;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.*;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.*;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.handler;
@@ -32,8 +45,22 @@ public class CheckoutControllerTest {
 
     @InjectMocks
     private CheckoutController checkoutController;
+    @Mock
+    private PurchaseService purchaseService;
     @Autowired
     private MockMvc mockMvc;
+    @MockBean
+    private CatalogFeign catalogFeign;
+    @MockBean
+    private UserFeign userFeign;
+    @Mock
+    private CartMessageSender cartMessageSender;
+    @Mock
+    private HistoryMessageSender historyMessageSender;
+
+    private VariationDTO variationDTO;
+    private ProductDTO productDTO;
+    private CustomerDTO customerDTO;
 
     @BeforeEach
     void init(){
@@ -145,6 +172,30 @@ public class CheckoutControllerTest {
         assertEquals((METHOD_EXIST+1+DOESNT_EXIST), result.getResponse().getContentAsString());
     }
 
+    @Test
+    @Order(9)
+    void createPurchaseOK() throws Exception{
+
+        variationDTO = new VariationDTO(15l,"Red","M",50.9,5,15l);
+        productDTO = new ProductDTO(15l,"T-shirt","Lorem Ipsum",true, List.of(1l));
+        customerDTO = new CustomerDTO(15l,true);
+        when(catalogFeign.getVariant(15l)).thenReturn(variationDTO);
+        when(catalogFeign.getProduct(15l)).thenReturn(productDTO);
+        when(userFeign.getCustomer(15l)).thenReturn(customerDTO);
+        doNothing().when(purchaseService).sendMessageToCatalog(any());
+        doNothing().when(purchaseService).sendMessageToHistory(any());
+        doNothing().when(purchaseService).isCustomerActive(15l);
+
+        URI uri = new URI("/v1/purchases");
+        MvcResult result = mockMvc.perform(post(uri).content(PURCHASE_OK).contentType(MediaType.APPLICATION_JSON))
+                .andExpect(status().is(201)).andReturn();
+
+        System.out.println("----------------------------------------");
+        System.out.println(result.getResponse().getContentAsString());
+        System.out.println("----------------------------------------");
+        //assertEquals((PAY1_ID+PAY1_OK), result.getResponse().getContentAsString());
+    }
+
 
     //Payment
     static final String PAY1_OK = "\"type\":\"Test\",\"discount\":11.11,\"status\":true}";
@@ -154,6 +205,8 @@ public class CheckoutControllerTest {
     static final String PAY2_ID = "{\"payment_id\":2,";
     static final String PAY_FAIL1 = "{}";
     static final String PAY_FAIL2 = "{\"type\":\"Test\",\"discount\":10.00}";
+    //Cart
+    static final String PURCHASE_OK = "{\"user_id\":15,\"payment_id\":2,\"cart\":[{\"variant_id\":15,\"quantity\":5}]}";
     //Exception
     static final String FIELDS_MISS = "The field(s) bellow must be filled:";
     static final String TYPE = "\n* Type";

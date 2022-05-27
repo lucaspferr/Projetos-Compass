@@ -63,11 +63,11 @@ public class PurchaseService {
         return purchaseRepository.save(purchase);
     }
 
-    private void sendMessageToHistory(PurchaseHistory purchaseHistory){
+    public void sendMessageToHistory(PurchaseHistory purchaseHistory){
         historyMessageSender.send(purchaseHistory);
     }
 
-    private void isCustomerActive(Long user_id) {
+    public void isCustomerActive(Long user_id) {
         if(!(userFeign.getCustomer(user_id).getActive())) throw new IllegalStateException("User with the ID "+user_id+" isn't active.");
     }
 
@@ -75,7 +75,7 @@ public class PurchaseService {
         if(!(paymentService.getByIdPayment(payment_id).getStatus())) throw new IllegalStateException("Payment method not active.");
     }
 
-    private void sendMessageToCatalog(Purchase purchase) {
+    public void sendMessageToCatalog(Purchase purchase) {
         purchase.getCart().forEach(cart -> {
             cartMessageSender.send(cart);
         });
