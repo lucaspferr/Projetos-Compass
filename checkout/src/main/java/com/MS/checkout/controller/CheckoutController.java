@@ -9,6 +9,8 @@ import com.MS.checkout.service.CartService;
 import com.MS.checkout.service.PaymentService;
 import com.MS.checkout.service.PurchaseService;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.http.HttpStatus;
+import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
 import javax.validation.Valid;
@@ -31,27 +33,38 @@ public class CheckoutController{
     private CartMessageSender cartMessageSender;
 
     @PostMapping("/payments")
-    public Payment createPayment(@RequestBody @Valid PaymentDTO paymentDTO){
-        return paymentService.createPayment(paymentDTO);
+    public ResponseEntity<?> createPayment(@RequestBody @Valid PaymentDTO paymentDTO){
+        Payment payment = paymentService.createPayment(paymentDTO);
+        return new ResponseEntity(payment, HttpStatus.CREATED);
     }
 
     @GetMapping("/payments")
-    public List<Payment> getAllPayments(){
-        return paymentService.getAllPayments();
+    public ResponseEntity<?> getAllPayments(){
+        List<Payment> payments = paymentService.getAllPayments();
+        return new ResponseEntity(payments, HttpStatus.OK);
     }
 
     @GetMapping("/payments/{payment_id}")
-    public Payment getPaymentById(@PathVariable Long payment_id){
-        return paymentService.getByIdPayment(payment_id);
+    public ResponseEntity<?> getPaymentById(@PathVariable Long payment_id){
+        Payment payment = paymentService.getByIdPayment(payment_id);
+        return new ResponseEntity(payment, HttpStatus.OK);
     }
 
     @PutMapping("/payments/{payment_id}")
-    public Payment updatePayment(@PathVariable Long payment_id, @RequestBody @Valid PaymentDTO paymentDTO){
-        return paymentService.updatePayment(payment_id, paymentDTO);
+    public ResponseEntity<?> updatePayment(@PathVariable Long payment_id, @RequestBody @Valid PaymentDTO paymentDTO){
+        Payment payment = paymentService.updatePayment(payment_id, paymentDTO);
+        return new ResponseEntity(payment, HttpStatus.CREATED);
+    }
+
+    @DeleteMapping("/payments/{payment_id}")
+    public ResponseEntity<?> deletePayment(@PathVariable Long payment_id){
+        paymentService.deletePayment(payment_id);
+        return new ResponseEntity(HttpStatus.NO_CONTENT);
     }
 
     @PostMapping("/purchases")
-    public Purchase createPurchase(@RequestBody @Valid PurchaseDTO purchaseDTO){
-        return purchaseService.createPurchase(purchaseDTO);
+    public ResponseEntity<?> createPurchase(@RequestBody @Valid PurchaseDTO purchaseDTO){
+        Purchase purchase = purchaseService.createPurchase(purchaseDTO);
+        return new ResponseEntity(purchase, HttpStatus.CREATED);
     }
 }

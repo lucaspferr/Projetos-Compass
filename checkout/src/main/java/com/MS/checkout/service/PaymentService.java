@@ -28,7 +28,7 @@ public class PaymentService {
     }
 
     public Payment idChecker(Long payment_id){
-        Payment payment = paymentRepository.findById(payment_id).orElseThrow(() -> new IllegalStateException("Id "+payment_id+" não existente"));
+        Payment payment = paymentRepository.findById(payment_id).orElseThrow(() -> new IllegalStateException("Payment method with the ID "+payment_id+" doesn't exist."));
         return payment;
     }
 
@@ -39,6 +39,11 @@ public class PaymentService {
 
     public Payment getByIdPayment(Long payment_id){
         return idChecker(payment_id);
+    }
+
+    public void deletePayment(Long payment_id){
+        Payment payment = idChecker(payment_id);
+        paymentRepository.delete(payment);
     }
 
     @Transactional

@@ -68,11 +68,11 @@ public class PurchaseService {
     }
 
     private void isCustomerActive(Long user_id) {
-        if(!(userFeign.getCustomer(user_id).getActive())) throw new IllegalStateException("Usuário não está ativo");
+        if(!(userFeign.getCustomer(user_id).getActive())) throw new IllegalStateException("User with the ID "+user_id+" isn't active.");
     }
 
     private void isPaymentActive(Long payment_id){
-        if(!(paymentService.getByIdPayment(payment_id).getStatus())) throw new IllegalStateException("Método de pagamento não está ativo");
+        if(!(paymentService.getByIdPayment(payment_id).getStatus())) throw new IllegalStateException("Payment method not active.");
     }
 
     private void sendMessageToCatalog(Purchase purchase) {
@@ -100,8 +100,9 @@ public class PurchaseService {
 
             VariationDTO variationDTO = catalogFeign.getVariant(cart.getVariant_id());
             ProductDTO productDTO = catalogFeign.getProduct(variationDTO.getProduct_id());
-            if(!(productDTO.getActive())) throw new IllegalStateException("Produto não ativo");
-            if(variationDTO.getQuantity() < cart.getQuantity()) throw new IllegalStateException("Quantidade Insuficiente");
+            if(!(productDTO.getActive())) throw new IllegalStateException("Product not active.");
+            if(variationDTO.getQuantity() == 0) throw new IllegalStateException("Product not in stock");
+            if(variationDTO.getQuantity() < cart.getQuantity()) throw new IllegalStateException("Product with insufficient quantity.");
 
             ProductHistory productHistory = new ProductHistory(productDTO.getName(), productDTO.getDescription(), variationDTO.getColor(), variationDTO.getSize(), variationDTO.getPrice(), cart.getQuantity());
             purchases.add(productHistory);
