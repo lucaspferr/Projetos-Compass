@@ -16,13 +16,17 @@ public class StockReductor {
 
     @RabbitListener(queues = "purchase.cart.queue")
     public void receive(@Payload CartDTO cartDTO){
-        Variation variation = variationRepository.findByVariant_id(cartDTO.getVariant_id());
+        try {
+            Variation variation = variationRepository.findByVariant_id(cartDTO.getVariant_id());
 
-        int posQuantity = variation.getQuantity() - cartDTO.getQuantity();
-        variation.setQuantity(posQuantity);
+            int posQuantity = variation.getQuantity() - cartDTO.getQuantity();
+            variation.setQuantity(posQuantity);
 
-        variationRepository.save(variation);
+            variationRepository.save(variation);
 
-        System.out.println("Estoque reduzido.");
+            System.out.println("Estoque reduzido.");
+        }catch (Exception e){
+            System.out.println("Erro de envio");
+        }
     }
 }
