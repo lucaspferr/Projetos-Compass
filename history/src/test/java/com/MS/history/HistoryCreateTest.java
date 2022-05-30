@@ -1,49 +1,39 @@
 package com.MS.history;
 
+import com.MS.history.client.UserFeign;
 import com.MS.history.model.*;
 import com.MS.history.model.DTO.*;
-import com.MS.history.repository.*;
 import com.MS.history.service.HistoryService;
-import com.MS.history.service.SequenceGeneratorService;
-import org.junit.jupiter.api.Assertions;
-import org.junit.jupiter.api.BeforeEach;
-import org.junit.jupiter.api.Test;
-import org.mockito.InjectMocks;
+import org.junit.jupiter.api.*;
 import org.mockito.Mock;
 import org.mockito.Mockito;
 import org.mockito.MockitoAnnotations;
 import org.modelmapper.ModelMapper;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
-import org.springframework.data.mongodb.core.MongoTemplate;
+import org.springframework.boot.test.mock.mockito.MockBean;
+import org.springframework.context.annotation.Profile;
+import org.springframework.data.mongodb.core.MongoOperations;
 
-import java.time.LocalDate;
 import java.util.List;
 
 import static org.junit.jupiter.api.Assertions.*;
 import static org.mockito.Mockito.*;
-import static org.springframework.data.mongodb.core.query.Criteria.where;
 
 @SpringBootTest
-public class HistoryServiceTest {
+@Profile("dev")
+@TestInstance(TestInstance.Lifecycle.PER_CLASS)
+@TestMethodOrder(MethodOrderer.OrderAnnotation.class)
+public class HistoryCreateTest {
 
-    @InjectMocks
+//    @InjectMocks
+//    private HistoryService historyService;
+    @Autowired
     private HistoryService historyService;
-    @Mock
-    private HistoryRepository historyRepository;
-    @Mock
-    private PaymentRepository paymentRepository;
-    @Mock
-    private ProductRepository productRepository;
-    @Mock
-    private PurchaseRepository purchaseRepository;
-    @Mock
-    private UserRepository userRepository;
-    @Mock
-    private ModelMapper modelMapper;
-    @Mock
-    private SequenceGeneratorService sequenceGeneratorService;
-    @Mock
-    private MongoTemplate mongoTemplate;
+    @Autowired
+    private MongoOperations mongoOperations;
+    @MockBean
+    private UserFeign userFeign;
 
     private History history;
     private HistoryDTO historyDTO;
@@ -63,27 +53,28 @@ public class HistoryServiceTest {
     private ModelMapper mapperReal = new ModelMapper();
 
     @BeforeEach
-    public void init(){
+    void init(){
         MockitoAnnotations.openMocks(this);
         createAll();
     }
 
-    @Test
-    void dateFormatterTest(){
-        assertEquals(DATEBR, historyService.dateFormatter(DATELOCAL));
+    @AfterAll
+    void end(){
+        mongoOperations.dropCollection("database_sequences");
+        mongoOperations.dropCollection("history");
+        mongoOperations.dropCollection("paymentMethod");
+        mongoOperations.dropCollection("products");
+        mongoOperations.dropCollection("purchases");
+        mongoOperations.dropCollection("user");
     }
 
     @Test
-    void getByIdTest(){
-        when(userRepository.findByUser_id(1l)).thenReturn(user);
-        when(historyRepository.findByHistory_id(1l)).thenReturn(history);
-        when(userRepository.findByHistory_id(1l)).thenReturn(user);
-        newHistoryDTO = mapperReal.map(history,HistoryDTO.class);
-        when(modelMapper.map(any(), eq(HistoryDTO.class))).thenReturn(historyDTO);
-
-        assertEquals(newHistoryDTO,historyService.getById(1l));
+    @Order(1)
+    void createHistory(){
+        when(userFeign.getCustomer(1l)).thenReturn(userDTO);
+        historyService.postHistory(checkoutHistory);
+        assertEquals(historyDTO, historyService.getById(1l));
     }
-
 
     void createAll(){
         user = new User(1l,FNAME,LNAME,SEX,CPF,BIRTH,EMAIL,1l);

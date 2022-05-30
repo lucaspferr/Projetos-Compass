@@ -69,7 +69,7 @@ spring:
           uri: lb://customer
           predicates:
             - Path=/v1/users/*
-            - Method=POST, PUT
+            - Method=POST, PUT, GET
             - Header=Authorization, Bearer (.*)
           filters:
             - RemoveRequestHeader=Cookie

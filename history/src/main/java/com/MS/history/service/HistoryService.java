@@ -38,12 +38,6 @@ public class HistoryService {
     @Autowired
     MongoTemplate mongoTemplate;
 
-    public History getAll(Long history_id) {
-        History history = historyRepository.findByHistory_id(history_id);
-        history.setUser(userRepository.findByHistory_id(history_id));
-
-        return history;
-    }
 
     public HistoryDTO getById(Long user_id){
         User user = userRepository.findByUser_id(user_id);
@@ -118,7 +112,7 @@ public class HistoryService {
         purchaseRepository.save(purchases);
         paymentRepository.save(paymentMethod);
 
-        return null;
+        return history;
     }
 
     private History updatePurchases(CheckoutHistory checkoutHistory) {
@@ -140,7 +134,7 @@ public class HistoryService {
         return history;
     }
 
-    private History createUser(CheckoutHistory checkoutHistory, UserDTO userDTO) {
+    public History createUser(CheckoutHistory checkoutHistory, UserDTO userDTO) {
         History history = new History();
         history.setHistory_id(sequenceGeneratorService.generateSequence(History.SEQUENCE_NAME));
         historyRepository.save(history);
@@ -165,8 +159,8 @@ public class HistoryService {
     //--------
 
     public History postHistory(CheckoutHistory checkoutHistory){
-        checkoutConversor(checkoutHistory,userFeign.getCustomer(checkoutHistory.getUser_id()));
-        return null;
+        History history = checkoutConversor(checkoutHistory,userFeign.getCustomer(checkoutHistory.getUser_id()));
+        return history;
 
     }
 }
