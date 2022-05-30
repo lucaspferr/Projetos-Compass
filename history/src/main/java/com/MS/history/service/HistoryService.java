@@ -57,8 +57,7 @@ public class HistoryService {
         History history = new History();
 
         //Checagem de usuario
-        if(userRepository.findByUser_id(checkoutHistory.getUser_id()) == null) history = createUser(checkoutHistory, userDTO);
-        else history = updatePurchases(checkoutHistory);
+        history = userCreator(checkoutHistory,userDTO);
 
 
         Long id = history.getHistory_id();
@@ -115,35 +114,18 @@ public class HistoryService {
         return history;
     }
 
-    private History updatePurchases(CheckoutHistory checkoutHistory) {
-
+    public History userCreator(CheckoutHistory checkoutHistory, UserDTO userDTO){
         History history = new History();
-        User user = userRepository.findByUser_id(checkoutHistory.getUser_id());
-        history.setHistory_id(user.getHistory_id());
-
+        User user;
+        if(userRepository.findByUser_id(checkoutHistory.getUser_id()) == null){
+            history.setHistory_id(sequenceGeneratorService.generateSequence(History.SEQUENCE_NAME));
+        }else{
+            user = userRepository.findByUser_id(checkoutHistory.getUser_id());
+            history.setHistory_id(user.getHistory_id());
+        }
         historyRepository.save(history);
-
-        mongoTemplate.save(user);
-        mongoTemplate
-                .update(History.class)
-                .matching(where("history_id").is(history.getHistory_id()))
-                .apply(new Update().push("user", user))
-                .first();
-        userRepository.save(user);
-
-        return history;
-    }
-
-    public History createUser(CheckoutHistory checkoutHistory, UserDTO userDTO) {
-        History history = new History();
-        history.setHistory_id(sequenceGeneratorService.generateSequence(History.SEQUENCE_NAME));
-        historyRepository.save(history);
-
-        User user = modelMapper.map(userDTO, User.class);
-
+        user = modelMapper.map(userDTO, User.class);
         user.setUser_id(checkoutHistory.getUser_id());
-
-
         user.setHistory_id(history.getHistory_id());
 
         mongoTemplate.save(user);
@@ -156,7 +138,6 @@ public class HistoryService {
 
         return history;
     }
-    //--------
 
     public History postHistory(CheckoutHistory checkoutHistory){
         History history = checkoutConversor(checkoutHistory,userFeign.getCustomer(checkoutHistory.getUser_id()));

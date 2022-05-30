@@ -37,19 +37,18 @@ public class HistoryCreateTest {
 
     private History history;
     private HistoryDTO historyDTO;
-    private HistoryDTO newHistoryDTO;
     private PaymentMethod paymentMethod;
     private PaymentDTO paymentDTO;
     private Products products;
     private ProductsDTO productsDTO;
     private Purchases purchases;
-    private Purchases purchasesCheckout;
     private PurchasesDTO purchasesDTO;
     private User user;
-    private User newUser;
+    private UserDTO newUserDTO;
     private UserDTO userDTO;
     private CheckoutHistory checkoutHistory;
     private UserForm userForm;
+    private UserForm newUserForm;
     private ModelMapper mapperReal = new ModelMapper();
 
     @BeforeEach
@@ -74,11 +73,28 @@ public class HistoryCreateTest {
         when(userFeign.getCustomer(1l)).thenReturn(userDTO);
         historyService.postHistory(checkoutHistory);
         assertEquals(historyDTO, historyService.getById(1l));
+        System.out.println(historyDTO);
+    }
+
+    @Test
+    @Order(2)
+    void createHistoryUpdatedCustomer(){
+        when(userFeign.getCustomer(1l)).thenReturn(newUserDTO);
+        historyService.postHistory(checkoutHistory);
+        assertEquals(newUserForm, historyService.getById(1l).getUser());
+        System.out.println(newUserForm);
+    }
+
+    @Test
+    @Order(3)
+    void getHistoryUpdated(){
+        System.out.println(historyService.getById(1l));
     }
 
     void createAll(){
         user = new User(1l,FNAME,LNAME,SEX,CPF,BIRTH,EMAIL,1l);
         userDTO = new UserDTO(1l,FNAME,LNAME,SEX,CPF,BIRTH,EMAIL);
+        newUserDTO = new UserDTO(1l,FNAME2,LNAME2,SEX,CPF,BIRTH,EMAIL2);
         paymentMethod = new PaymentMethod(1l,TYPE,DSCNT,true,1l);
         products = new Products(1l,PNAME,DESCR,COLOR,SIZE,PRICE,5,1l);
         purchases = new Purchases(1l,paymentMethod, List.of(products),TOTAL,DATEBR,1l);
@@ -87,6 +103,7 @@ public class HistoryCreateTest {
         productsDTO = new ProductsDTO(PNAME,DESCR,COLOR,SIZE,PRICE,5);
         checkoutHistory = new CheckoutHistory(1l,paymentDTO,List.of(productsDTO),TOTAL,DATELOCAL);
         userForm = new UserForm(FNAME,LNAME,SEX,CPF,BIRTH,EMAIL);
+        newUserForm = new UserForm(FNAME2,LNAME2,SEX,CPF,BIRTH,EMAIL2);
         purchasesDTO = new PurchasesDTO(paymentDTO,List.of(productsDTO),TOTAL,DATEBR);
         historyDTO = new HistoryDTO(userForm,List.of(purchasesDTO));
     }
@@ -94,11 +111,14 @@ public class HistoryCreateTest {
     static final String DATELOCAL = "2022-05-27";
     static final String DATEBR = "27/05/2022";
     static final String FNAME = "Firstname";
+    static final String FNAME2 = "Updated";
     static final String LNAME = "Lastname";
+    static final String LNAME2 = "Customer";
     static final String SEX = "Masculino";
     static final String CPF = "000.000.000-00";
     static final String BIRTH = "19/04/1997";
     static final String EMAIL = "teste@teste.com";
+    static final String EMAIL2 = "new@email.com";
     static final String TYPE = "Credit";
     static final Double DSCNT = 15.00;
     static final String PNAME = "Product";
